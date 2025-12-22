@@ -1,53 +1,48 @@
 services:
+  # Service Web pour l'API Laravel
   - type: web
-    name: u-cup-backend
+    name: ucup-backend-laravel
     env: php
-    region: frankfurt
+    # DOIT ÊTRE LA MÊME RÉGION QUE LA BDD (Oregon dans votre cas)
+    region: oregon 
     plan: free
+    
+    # Commandes d'installation et de préparation de l'application
     buildCommand: |
       composer install --no-dev --optimize-autoloader
-      php artisan key:generate
-      php artisan config:cache
-      php artisan route:cache
-      php artisan view:cache
+      # Crée le lien symbolique vers le dossier storage/public (si utilisé)
       php artisan storage:link
-    startCommand: heroku-php-apache2 public/
+      # Nettoyage des caches si des commandes ont été utilisées
+      php artisan config:clear
+    
+    # Commande de démarrage du serveur Laravel
+    startCommand: php artisan serve --host=0.0.0.0 --port=$PORT
+
+    # Variables d'environnement qui peuvent être passées en toute sécurité (non secrètes)
     envVars:
+      # L'APP_KEY sera définie manuellement pour des raisons de sécurité
       - key: APP_ENV
         value: production
       - key: APP_DEBUG
         value: false
-      - key: APP_URL
-        value: https://u-cup-backend.onrender.com
-      - key: FRONTEND_URL
-        value: https://u-cup-tournament.vercel.app
       - key: DB_CONNECTION
         value: pgsql
-      - key: DB_HOST
+      - key: PORT
+        value: 10000
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://u-cup-tournament.vercel.app, http://localhost:3000
+      
+      # Connexion à la base de données via Render Blueprint
+      - key: DATABASE_URL
         fromDatabase:
-          name: u-cup-db
-          property: host
-      - key: DB_PORT
-        fromDatabase:
-          name: u-cup-db
-          property: port
-      - key: DB_DATABASE
-        fromDatabase:
-          name: u-cup-db
-          property: database
-      - key: DB_USERNAME
-        fromDatabase:
-          name: u-cup-db
-          property: user
-      - key: DB_PASSWORD
-        fromDatabase:
-          name: u-cup-db
-          property: password
-    autoDeploy: true
-
+          name: ucup-database
+          property: connectionString
+      
+# Définition de la Base de Données existante (pour la lier au service Web)
 databases:
-  - name: u-cup-db
-    region: frankfurt
+  - name: ucup-database
+    region: oregon 
     plan: free
-    databaseName: u_cup_tournament
-    user: ucup_admin
+    # Doit correspondre à vos noms de BDD et utilisateur si vous laissez cette section
+    databaseName: ucup_db 
+    user: ucup_user

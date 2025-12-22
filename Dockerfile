@@ -40,5 +40,17 @@ COPY . .
 # Composer peut maintenant utiliser l'extension zip installée.
 RUN composer install --no-dev --prefer-dist --optimize-autoloader
 
+# NOUVELLE ÉTAPE : Assurer les permissions pour les dossiers de cache/logs de Laravel
+RUN chmod -R 775 storage bootstrap/cache
+
 # 6. DÉMARRAGE DU SERVEUR
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=10000"]
+# Utilise un script de démarrage qui prépare l'application et utilise le PORT fourni par Render.
+# set -e arrête l'exécution si l'une des commandes échoue (bon pour le débogage).
+# key:generate, config:cache et migrate sont lancés ici pour utiliser les ENV de Render.
+CMD set -e && \
+    php artisan key:generate --force && \
+    php artisan config:clear && \
+    php artisan config:cache && \
+    php artisan view:cache && \
+    php artisan migrate --force && \
+    php artisan serve --host=0.0.0.0 --port=$PORT

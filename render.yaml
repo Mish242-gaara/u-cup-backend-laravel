@@ -1,0 +1,53 @@
+services:
+  - type: web
+    name: u-cup-backend
+    env: php
+    region: frankfurt
+    plan: free
+    buildCommand: |
+      composer install --no-dev --optimize-autoloader
+      php artisan key:generate
+      php artisan config:cache
+      php artisan route:cache
+      php artisan view:cache
+      php artisan storage:link
+    startCommand: heroku-php-apache2 public/
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_URL
+        value: https://u-cup-backend.onrender.com
+      - key: FRONTEND_URL
+        value: https://u-cup-tournament.vercel.app
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: u-cup-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: u-cup-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: u-cup-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: u-cup-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: u-cup-db
+          property: password
+    autoDeploy: true
+
+databases:
+  - name: u-cup-db
+    region: frankfurt
+    plan: free
+    databaseName: u_cup_tournament
+    user: ucup_admin

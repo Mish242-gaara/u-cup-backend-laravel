@@ -6,18 +6,18 @@ WORKDIR /app
 
 # 2. INSTALLATION DES DÉPENDANCES SYSTÈME, EXTENSIONS PHP ET NETTOYAGE
 RUN apk add --no-cache --virtual .build-deps \
-        autoconf \
-        gcc \
-        g++ \
-        make \
-        libzip-dev \
-        postgresql-dev \
+    autoconf \
+    gcc \
+    g++ \
+    make \
+    libzip-dev \
+    postgresql-dev \
     && apk add --no-cache \
-        git \
-        libpq \
-        libzip \
-        unzip \
-        postgresql-client \
+    git \
+    libpq \
+    libzip \
+    unzip \
+    postgresql-client \
     && docker-php-ext-install pdo pdo_pgsql zip \
     && apk del .build-deps
 
@@ -37,11 +37,12 @@ RUN composer install --no-dev --prefer-dist --optimize-autoloader
 RUN chmod -R 775 storage bootstrap/cache
 
 # 6. DÉMARRAGE DU SERVEUR
-# Le CMD reste inchangé et est correct
+# CORRECTION APPLIQUÉE : Force DB_SSLMODE=require uniquement pour la migration,
+# ce qui contourne les problèmes de chargement des variables d'environnement.
 CMD set -e && \
     php artisan key:generate --force && \
     php artisan config:clear && \
     php artisan config:cache && \
     php artisan view:cache && \
-    php artisan migrate --force && \
+    DB_SSLMODE=require php artisan migrate --force && \
     php artisan serve --host=0.0.0.0 --port=$PORT

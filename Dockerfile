@@ -11,7 +11,9 @@ RUN apk add --no-cache \
     libpq \
     libzip \
     unzip \
-    postgresql-client
+    postgresql-client \
+    # CORRECTION CRUCIALE : Ajout des headers de développement PostgreSQL
+    postgresql-dev 
 
 # Installer les extensions PHP nécessaires (PostgreSQL, Zip, etc.)
 RUN docker-php-ext-install pdo pdo_pgsql zip

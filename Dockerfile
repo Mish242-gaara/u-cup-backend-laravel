@@ -1,5 +1,5 @@
 # Utiliser une image PHP Alpine (légère) avec Composer
-FROM composer:2.7-alpine
+FROM composer:2.7
 
 # Définir le répertoire de travail
 WORKDIR /app

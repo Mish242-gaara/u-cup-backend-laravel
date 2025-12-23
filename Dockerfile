@@ -43,12 +43,12 @@ CMD set -e && \
     # Configurer l'environnement pour utiliser DATABASE_URL et forcer SSL
     export DB_SSLMODE=require && \
     export DB_CONNECTION=pgsql && \
-    export DB_URL=$DATABASE_URL && \
+    # Mapper DATABASE_URL (fournie par Render) vers DB_URL (attendue par Laravel)
+    export DB_URL=${DATABASE_URL:-postgres://localhost/laravel} && \
     # Générer la clé d'application et la sauvegarder dans .env
     APP_KEY=$(php artisan key:generate --show) && \
     echo "APP_KEY=$APP_KEY" >> .env && \
     echo "DB_SSLMODE=require" >> .env && \
-    echo "DB_URL=$DATABASE_URL" >> .env && \
     # Nettoyer et recacher la configuration avec les bonnes variables
     php artisan config:clear && \
     php artisan config:cache && \

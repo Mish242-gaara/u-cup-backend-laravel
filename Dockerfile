@@ -27,8 +27,8 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # 4. COPIE DU CODE SOURCE
 COPY . .
 
-# NOUVEAU : Créer le fichier .env. 'touch' garantit que le fichier existe pour 'key:generate'.
-RUN touch .env
+# NOUVEAU : Copier le fichier .env.render comme base de configuration
+COPY .env.render .env
 
 # 5. INSTALLATION DES DÉPENDANCES COMPOSER
 RUN composer install --no-dev --prefer-dist --optimize-autoloader
@@ -37,12 +37,23 @@ RUN composer install --no-dev --prefer-dist --optimize-autoloader
 RUN chmod -R 775 storage bootstrap/cache
 
 # 6. DÉMARRAGE DU SERVEUR
-# CORRECTION APPLIQUÉE : Force DB_SSLMODE=require uniquement pour la migration,
-# ce qui contourne les problèmes de chargement des variables d'environnement.
+# CORRECTION COMPLÈTE : Force DB_SSLMODE=require pour TOUTES les commandes,
+# utilise DATABASE_URL pour la configuration, et génère/sauvegarde APP_KEY
 CMD set -e && \
-    php artisan key:generate --force && \
+    # Configurer l'environnement pour utiliser DATABASE_URL et forcer SSL
+    export DB_SSLMODE=require && \
+    export DB_CONNECTION=pgsql && \
+    export DB_URL=$DATABASE_URL && \
+    # Générer la clé d'application et la sauvegarder dans .env
+    APP_KEY=$(php artisan key:generate --show) && \
+    echo "APP_KEY=$APP_KEY" >> .env && \
+    echo "DB_SSLMODE=require" >> .env && \
+    echo "DB_URL=$DATABASE_URL" >> .env && \
+    # Nettoyer et recacher la configuration avec les bonnes variables
     php artisan config:clear && \
     php artisan config:cache && \
     php artisan view:cache && \
-    DB_SSLMODE=require php artisan migrate --force && \
+    # Exécuter les migrations avec SSL forcé
+    php artisan migrate --force && \
+    # Démarrer le serveur
     php artisan serve --host=0.0.0.0 --port=$PORT

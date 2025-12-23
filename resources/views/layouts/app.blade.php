@@ -398,10 +398,7 @@
                     </a>
 
                     {{-- Lien d'Administration (bouton vert) --}}
-                    <a href="{{ route('admin.dashboard') }}" 
-                        class="ml-4 px-3 py-1 text-sm font-medium text-green-400 hover:text-white border border-green-400 rounded-md hover:bg-green-600 transition">
-                        <i class="fas fa-user-shield mr-1"></i> Admin
-                    </a>
+
                 </nav>
                 
                 {{-- Menu Mobile --}}
@@ -447,12 +444,7 @@
                             Classement
                         </a>
                         
-                        <div class="border-t border-gray-700 mt-3 pt-3">
-                            <a href="{{ route('admin.dashboard') }}" 
-                                class="block px-3 py-2 rounded-md text-base font-medium text-green-400 hover:text-white hover:bg-green-600 transition">
-                                <i class="fas fa-user-shield mr-1"></i> Admin
-                            </a>
-                        </div>
+
                     </div>
                 </div>
             </div>
@@ -463,7 +455,87 @@
         @yield('content')
     </main>
 
-    {{-- Vous pouvez ajouter un footer sombre ici --}}
+        {{-- 
+        ***************************************************
+        NOUVEAU FOOTER DÉTAILLÉ ET PROFESSIONNEL
+        *************************************************** --}}
+    <footer class="bg-gray-800/90 border-t border-gray-700 mt-12">
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            {{-- Grille principale du footer (4 colonnes sur grand écran, 2 colonnes sur mobile) --}}
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
+                
+                {{-- 1. Identité & Organisation --}}
+                <div class="col-span-2 md:col-span-1">
+                    <h4 class="text-lg font-extrabold text-green-400 mb-3 flex items-center">
+                        <i class="fas fa-trophy mr-2"></i> U-Cup Tournoi 2026
+                    </h4>
+                    <p class="text-gray-400 mb-2">Plateforme officielle de suivi du Tournoi Inter-Universitaire de Football.</p>
+                    <p class="text-gray-300 font-semibold mt-4">Organisation :</p>
+                    <p class="text-gray-400">Bureau Départemental des Étudiants (BDDE) - ESTAM.</p>
+                </div>
+
+                {{-- 2. Navigation Rapide --}}
+                <div>
+                    <h4 class="text-lg font-bold text-white mb-3">Navigation Rapide</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ route('home') }}" class="text-gray-400 hover:text-white transition duration-150">Accueil</a></li>
+                        <li><a href="{{ route('matches.index') }}" class="text-gray-400 hover:text-white transition duration-150">Matchs & Résultats</a></li>
+                        <li><a href="{{ route('matches.live') }}" class="text-red-400 hover:text-red-300 font-bold transition duration-150">En Direct <i class="fas fa-satellite-dish ml-1 text-sm"></i></a></li>
+                        <li><a href="{{ route('standings.index') }}" class="text-gray-400 hover:text-white transition duration-150">Classement</a></li>
+                    </ul>
+                </div>
+
+                {{-- 3. Statistiques & Média --}}
+                <div>
+                    <h4 class="text-lg font-bold text-white mb-3">Statistiques & Équipes</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{{ route('teams.index') }}" class="text-gray-400 hover:text-white transition duration-150">Équipes participantes</a></li>
+                        <li><a href="{{ route('players.index') }}" class="text-gray-400 hover:text-white transition duration-150">Liste des Joueurs</a></li>
+                        <li><a href="{{ route('players.leaderboard') }}" class="text-gray-400 hover:text-white transition duration-150">Top Buteurs/Passeurs</a></li>
+                        <li><a href="{{ route('gallery.index') }}" class="text-gray-400 hover:text-white transition duration-150">Galerie Photos</a></li>
+                    </ul>
+                </div>
+
+                {{-- 4. Crédit & Contact --}}
+                <div>
+                    <h4 class="text-lg font-bold text-white mb-3">Développement & Contact</h4>
+                    <div class="space-y-2">
+                        <p class="text-gray-300 font-medium">Conçu par : Elmish MOUKOUANGA</p>
+                        <p class="text-xs text-gray-500">Étudiant en Génie Informatique – ESTAM</p>
+                    </div>
+                    
+                    <div class="mt-4 space-y-2">
+                        <a href="tel:+242064149149" class="text-gray-400 hover:text-white flex items-center">
+                            <i class="fas fa-phone-alt text-green-400 mr-2"></i> +242 06 414 91 49
+                        </a>
+                        <a href="mailto:emoukouanga@gmail.com" class="text-gray-400 hover:text-white flex items-center">
+                            <i class="fas fa-envelope text-green-400 mr-2"></i> emoukouanga@gmail.com
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            {{-- Barre de copyright du bas --}}
+            <div class="border-t border-gray-700 mt-8 pt-4 text-center">
+                <p class="text-sm text-gray-500">
+                    &copy; {{ date('Y') }} U-Cup / BDDE – Tous droits réservés.
+                    <a href="{{ route('login') }}" class="ml-4 text-xs text-gray-600 hover:text-gray-400">Accès Admin</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+    {{-- 
+        ***************************************************
+        FIN DU NOUVEAU FOOTER
+        *************************************************** --}}
+
+    <script>
+        function toggleMobileMenu() {
+            document.getElementById('mobileMenu').classList.toggle('hidden');
+        }
+    </script>
+
+    @stack('scripts')
     
 </body>
 </html>

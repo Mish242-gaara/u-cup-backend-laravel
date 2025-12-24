@@ -56,7 +56,11 @@ echo "Creating log files and setting permissions..."
 touch /var/log/supervisor/supervisord.log
 touch /var/log/nginx/access.log
 touch /var/log/nginx/error.log
-chown -R www-data:www-data /var/log/supervisor /var/log/nginx /var/log/php-fpm
+# CRITIQUE: Ajout de la création des fichiers de log PHP-FPM pour Supervisor
+touch /var/log/php-fpm.log
+touch /var/log/php-fpm-error.log
+# Mise à jour de chown pour inclure tous les répertoires de logs et les NOUVEAUX fichiers
+chown -R www-data:www-data /var/log/supervisor /var/log/nginx /var/log/php-fpm /var/log/php-fpm.log /var/log/php-fpm-error.log
 
 # 6. DÉMARRAGE DES SERVICES
 echo "Starting Supervisor (Nginx and PHP-FPM)..."

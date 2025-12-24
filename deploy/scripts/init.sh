@@ -19,13 +19,13 @@ echo "APP_URL=$APP_URL" >> /app/.env
 
 # Générer la clé d'application si elle est manquante
 if grep -q "^APP_KEY=" /app/.env; then
-    if [ -z "$(grep "^APP_KEY=" /app/.env | cut -d '=' -f 2)" ]; then
-        APP_KEY=$(php artisan key:generate --show)
-        sed -i "s|^APP_KEY=.*|APP_KEY=$APP_KEY|" /app/.env
-    fi
+    if [ -z "$(grep "^APP_KEY=" /app/.env | cut -d '=' -f 2)" ]; then
+        APP_KEY=$(php artisan key:generate --show)
+        sed -i "s|^APP_KEY=.*|APP_KEY=$APP_KEY|" /app/.env
+    fi
 else
-    APP_KEY=$(php artisan key:generate --show)
-    echo "APP_KEY=$APP_KEY" >> /app/.env
+    APP_KEY=$(php artisan key:generate --show)
+    echo "APP_KEY=$APP_KEY" >> /app/.env
 fi
 
 # 2. CACHE ET MIGRATIONS

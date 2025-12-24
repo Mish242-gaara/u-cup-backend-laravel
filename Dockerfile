@@ -43,27 +43,8 @@ COPY deploy/config/nginx.conf /etc/nginx/nginx.conf
 COPY deploy/config/supervisor.conf /etc/supervisor/conf.d/supervisor.conf
 
 # 9. CRÉATION DU SCRIPT D'INITIALISATION
-RUN echo '#!/bin/sh
-
-# Configuration initiale
-export DB_SSLMODE=require
-
-# Générer la clé d\'application
-APP_KEY=$(php artisan key:generate --show)
-echo "APP_KEY=$APP_KEY" >> .env
-echo "DB_SSLMODE=require" >> .env
-
-# Nettoyer et recacher la configuration
-php artisan config:clear
-php artisan config:cache
-php artisan view:cache
-
-# Exécuter les migrations et le seeding
-php artisan migrate:fresh --seed --force
-
-# Démarrer Supervisor
-exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisor.conf' > /usr/local/bin/init.sh && \
-    chmod +x /usr/local/bin/init.sh
+COPY deploy/scripts/init.sh /usr/local/bin/init.sh
+RUN chmod +x /usr/local/bin/init.sh
 
 # 10. DÉMARRAGE AVEC LE SCRIPT D'INITIALISATION
 CMD ["/usr/local/bin/init.sh"]

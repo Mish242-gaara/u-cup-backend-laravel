@@ -29,19 +29,23 @@ php artisan config:clear
 php artisan config:cache
 php artisan view:cache
 
-# Attendre que la base de données soit prête
+# Attendre que la base de données soit prête avec une approche plus robuste
 echo "Attente de la disponibilité de la base de données..."
-for i in {1..30}; do
+for i in {1..60}; do
     if php artisan migrate:status > /dev/null 2>&1; then
         echo "Base de données prête!"
         break
     fi
-    echo "Tentative $i/30..."
-    sleep 2
+    echo "Tentative $i/60..."
+    sleep 5
 done
 
-# Exécuter les migrations et le seeding
-php artisan migrate:fresh --seed --force
+# Exécuter les migrations et le seeding avec gestion des erreurs
+echo "Exécution des migrations..."
+php artisan migrate:fresh --seed --force || {
+    echo "Échec des migrations, tentative avec disable-foreign-keys..."
+    php artisan migrate:fresh --seed --force --disable-foreign-keys
+}
 
-# Démarrer Supervisor
-exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisor.conf
+# Démarrer Supervisor en tant qu'utilisateur spécifique
+exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisor.conf -n

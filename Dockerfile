@@ -5,6 +5,8 @@ FROM php:8.3-fpm-alpine
 WORKDIR /app
 
 # 2. INSTALLATION DES DÉPENDANCES SYSTÈME, EXTENSIONS PHP ET NETTOYAGE
+# Les packages sont installés en deux étapes : les dépendances de construction (.build-deps) 
+# et les dépendances runtime (permanentes).
 RUN apk add --no-cache --virtual .build-deps \
     autoconf \
     gcc \
@@ -12,6 +14,10 @@ RUN apk add --no-cache --virtual .build-deps \
     make \
     libzip-dev \
     postgresql-dev \
+    # Ajout des dépendances pour gd si nécessaire (libpng-dev, freetype-dev, etc.)
+    # Si vous utilisez GD pour les images, vous devrez ajouter des packages ici.
+    # icu-dev pour intl
+    icu-dev \
     && apk add --no-cache \
     git \
     libpq \
@@ -21,7 +27,17 @@ RUN apk add --no-cache --virtual .build-deps \
     nginx \
     supervisor \
     ca-certificates \
+    # Dépendances runtime pour les extensions
+    icu-data \
     && docker-php-ext-install pdo pdo_pgsql zip \
+    # CORRECTION CRITIQUE : Ajout des extensions Laravel essentielles
+    && docker-php-ext-install opcache \
+    && docker-php-ext-install bcmath \
+    && docker-php-ext-install openssl \
+    && docker-php-ext-install intl \
+    # Si vous avez besoin de GD:
+    # && docker-php-ext-install gd \
+    && docker-php-ext-enable opcache \
     && apk del .build-deps
 
 # 3. INSTALLATION DE COMPOSER
@@ -38,9 +54,10 @@ RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
 RUN chmod -R 775 /app/storage /app/bootstrap/cache
 
 # 6b. CRÉATION DES RÉPERTOIRES DE LOGS AVEC BONNES PERMISSIONS
-RUN mkdir -p /var/log/supervisor /var/log/nginx /var/log/php-fpm /var/log/laravel
-RUN chown -R www-data:www-data /var/log/supervisor /var/log/nginx /var/log/php-fpm /var/log/laravel
-RUN chmod -R 775 /var/log/supervisor /var/log/nginx /var/log/php-fpm /var/log/laravel
+# Assurez-vous que /var/run/php existe pour la socket FPM
+RUN mkdir -p /var/log/supervisor /var/log/nginx /var/log/php-fpm /var/log/laravel /var/run/php
+RUN chown -R www-data:www-data /var/log/supervisor /var/log/nginx /var/log/php-fpm /var/log/laravel /var/run/php
+RUN chmod -R 775 /var/log/supervisor /var/log/nginx /var/log/php-fpm /var/log/laravel /var/run/php
 
 # 7. CONFIGURATION NGINX
 COPY deploy/config/nginx.conf /etc/nginx/nginx.conf

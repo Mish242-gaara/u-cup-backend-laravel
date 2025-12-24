@@ -28,20 +28,21 @@ chown -R www-data:www-data /var/log/supervisor /var/log/nginx /var/log/php-fpm /
 chmod -R 775 /var/log/supervisor /var/log/nginx /var/log/php-fpm /var/www/html/storage
 
 # Configuration initiale
-export DB_SSLMODE=require
+echo "Setting up environment configuration..."
+if [ ! -f .env ]; then
+    cp /etc/supervisor/conf.d/.env.render .env
+fi
 
-# Générer la clé d'application
-APP_KEY=$(php artisan key:generate --show)
-echo "APP_KEY=$APP_KEY" >> .env
-
-# Configuration correcte de la base de données
-echo "DB_CONNECTION=pgsql" >> .env
-echo "DB_HOST=dpg-d54ii8umcj7s73es0220-a.oregon-postgres.render.com" >> .env
-echo "DB_PORT=5432" >> .env
-echo "DB_DATABASE=ucup_database" >> .env
-echo "DB_USERNAME=ucup_database_user" >> .env
-echo "DB_PASSWORD=o2HvDyIDWtgPrijOJ4aehI10mjJaWs9E" >> .env
-echo "DB_SSLMODE=require" >> .env
+# Générer la clé d'application si elle n'existe pas
+if grep -q "^APP_KEY=" .env; then
+    if [ -z "$(grep "^APP_KEY=" .env | cut -d '=' -f 2)" ]; then
+        APP_KEY=$(php artisan key:generate --show)
+        sed -i "s/^APP_KEY=.*/APP_KEY=$APP_KEY/" .env
+    fi
+else
+    APP_KEY=$(php artisan key:generate --show)
+    echo "APP_KEY=$APP_KEY" >> .env
+fi
 
 # Nettoyer et recacher la configuration
 php artisan config:clear
@@ -66,5 +67,20 @@ php artisan migrate:fresh --seed --force || {
     php artisan migrate:fresh --seed --force --disable-foreign-keys
 }
 
+# Vérifier la configuration avant de démarrer
+echo "Testing database connection..."
+if ! php artisan migrate:status > /dev/null 2>&1; then
+    echo "Database connection failed, trying to wait..."
+    sleep 10
+fi
+
+# Nettoyer et recacher la configuration
+echo "Clearing and caching configuration..."
+php artisan config:clear
+php artisan config:cache
+php artisan view:cache
+php artisan route:cache
+
 # Démarrer Supervisor en tant qu'utilisateur spécifique
+echo "Starting Supervisor..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisor.conf -n

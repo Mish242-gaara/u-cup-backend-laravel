@@ -1,5 +1,21 @@
 #!/bin/sh
 
+# Créer les répertoires de logs nécessaires
+mkdir -p /var/log/supervisor
+mkdir -p /var/log/nginx
+mkdir -p /var/log/php-fpm
+mkdir -p /var/log/laravel
+
+touch /var/log/supervisor/supervisord.log
+touch /var/log/nginx.log
+touch /var/log/nginx-error.log
+touch /var/log/php-fpm.log
+touch /var/log/php-fpm-error.log
+touch /var/log/laravel-worker.log
+touch /var/log/laravel-worker-error.log
+touch /var/log/laravel-schedule.log
+touch /var/log/laravel-schedule-error.log
+
 # Configuration initiale
 export DB_SSLMODE=require
 
@@ -12,6 +28,17 @@ echo "DB_SSLMODE=require" >> .env
 php artisan config:clear
 php artisan config:cache
 php artisan view:cache
+
+# Attendre que la base de données soit prête
+echo "Attente de la disponibilité de la base de données..."
+for i in {1..30}; do
+    if php artisan migrate:status > /dev/null 2>&1; then
+        echo "Base de données prête!"
+        break
+    fi
+    echo "Tentative $i/30..."
+    sleep 2
+done
 
 # Exécuter les migrations et le seeding
 php artisan migrate:fresh --seed --force

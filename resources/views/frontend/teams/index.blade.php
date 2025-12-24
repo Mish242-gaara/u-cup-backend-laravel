@@ -1,4 +1,4 @@
-@extends('layouts.frontend')
+@extends('layouts.app')
 
 @section('title', 'Équipes - U-Cup Tournament')
 

@@ -20,6 +20,7 @@ RUN apk add --no-cache --virtual .build-deps \
     postgresql-client \
     nginx \
     supervisor \
+    ca-certificates \
     && docker-php-ext-install pdo pdo_pgsql zip \
     && apk del .build-deps
 

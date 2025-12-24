@@ -21,7 +21,6 @@ RUN apk add --no-cache --virtual .build-deps \
     nginx \
     supervisor \
     ca-certificates \
-    php83-php-fpm \
     && docker-php-ext-install pdo pdo_pgsql zip \
     && apk del .build-deps
 
@@ -41,10 +40,7 @@ RUN chmod -R 775 /app/storage /app/bootstrap/cache
 # 7. CONFIGURATION NGINX
 COPY deploy/config/nginx.conf /etc/nginx/nginx.conf
 
-# 8. CONFIGURATION PHP-FPM
-COPY deploy/config/php-fpm.conf /etc/php83/php-fpm.conf
-
-# 9. CONFIGURATION SUPERVISOR
+# 8. CONFIGURATION SUPERVISOR
 COPY deploy/config/supervisor.conf /etc/supervisor/conf.d/supervisor.conf
 
 # 9. CRÉATION DU SCRIPT D'INITIALISATION

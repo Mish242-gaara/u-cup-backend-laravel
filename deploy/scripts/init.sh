@@ -17,19 +17,28 @@ echo "" >> /app/.env
 echo "DB_SSLMODE=require" >> /app/.env
 echo "APP_URL=$APP_URL" >> /app/.env
 
-# Générer la clé d'application si elle est manquante (Syntaxe Shell standard)
-if grep -q "^APP_KEY=" /app/.env; then
-    if [ -z "$(grep "^APP_KEY=" /app/.env | cut -d '=' -f 2)" ]; then
-        APP_KEY=$(php artisan key:generate --show)
-        sed -i "s|^APP_KEY=.*|APP_KEY=$APP_KEY|" /app/.env
-    fi
-else
+# Générer la clé d'application si elle est manquante ou vide.
+# IMPORTANT : Utilisation de '#' comme délimiteur pour éviter les conflits avec le contenu de la clé.
+APP_KEY_LINE=$(grep "^APP_KEY=" /app/.env)
+
+if [ -z "$APP_KEY_LINE" ] || [ "$(echo $APP_KEY_LINE | cut -d '=' -f 2)" = "" ]; then
+    echo "Generating new application key..."
     APP_KEY=$(php artisan key:generate --show)
-    echo "APP_KEY=$APP_KEY" >> /app/.env
+    
+    if [ -z "$APP_KEY_LINE" ]; then
+        # La clé n'existe pas, on l'ajoute
+        echo "APP_KEY=$APP_KEY" >> /app/.env
+    else
+        # La clé existe mais est vide, on la remplace
+        # CORRECTION SED: Utilisation de '#' comme délimiteur pour éviter les conflits avec les caractères de la clé.
+        # sed -i "s|^APP_KEY=.*|APP_KEY=$APP_KEY|" /app/.env
+        sed -i "s#^APP_KEY=.*#APP_KEY=$APP_KEY#" /app/.env
+    fi
 fi
 
 # 2. CACHE ET MIGRATIONS
 echo "Clearing and caching configuration..."
+# Assurez-vous que l'extension 'intl' est chargée ici (corrigé dans le Dockerfile v3)
 php artisan config:clear
 php artisan config:cache
 php artisan view:cache
@@ -41,7 +50,7 @@ php artisan migrate:fresh --seed --force
 
 # 4. CONFIGURATION NGINX DYNAMIQUE POUR RENDER
 echo "Setting Nginx listener port to $PORT..."
-# Utilisation de 'sed' pour remplacer le port 8080 par la variable $PORT
+# Utilisation de 'sed' pour remplacer le port 8080 par la variable $PORT. Utilisation du délimiteur '/' standard ici.
 sed -i "s/listen 0.0.0.0:8080;/listen 0.0.0.0:$PORT;/" /etc/nginx/nginx.conf
 sed -i "s/listen \[::\]:8080;/listen \[::\]:$PORT;/" /etc/nginx/nginx.conf
 

@@ -5,7 +5,6 @@ FROM php:8.3-fpm-alpine
 WORKDIR /app
 
 # 2. INSTALLATION DES DÉPENDANCES SYSTÈME, EXTENSIONS PHP ET NETTOYAGE
-# Installation des dépendances de construction et de runtime.
 RUN apk add --no-cache --virtual .build-deps \
     autoconf \
     gcc \
@@ -24,6 +23,8 @@ RUN apk add --no-cache --virtual .build-deps \
     supervisor \
     ca-certificates \
     icu-data \
+    # AJOUT DE LA LIBRAIRIE ICU ESSENTIELLE POUR INTL
+    icu-libs \
     # CORRECTION CRITIQUE (v2) : Extensions binaires PHP Alpine qui causent des erreurs de compilation config.m4
     && apk add --no-cache \
     php83-bcmath \

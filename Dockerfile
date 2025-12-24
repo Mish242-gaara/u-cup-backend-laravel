@@ -52,7 +52,6 @@ COPY deploy/config/php-fpm.conf /etc/php83/php-fpm.d/www.conf
 COPY deploy/config/supervisor.conf /etc/supervisor/conf.d/supervisor.conf
 
 # 10. COPIE DU FICHIER D'ENVIRONNEMENT POUR RENDER
-# NOTE : On copie juste le fichier, mais on ne s'en sert pas directement ici.
 COPY deploy/config/.env.render /app/.env.render
 
 # 11. CRÉATION DU SCRIPT D'INITIALISATION
@@ -60,5 +59,4 @@ COPY deploy/scripts/init.sh /usr/local/bin/init.sh
 RUN chmod +x /usr/local/bin/init.sh
 
 # 12. DÉMARRAGE AVEC LE SCRIPT D'INITIALISATION
-# NOTE: Nous utilisons le shell pour exécuter le script, ce qui est plus sûr.
 CMD ["/bin/sh", "-c", "/usr/local/bin/init.sh"]

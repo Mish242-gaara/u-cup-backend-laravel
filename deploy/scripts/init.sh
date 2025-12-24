@@ -6,23 +6,26 @@ echo "Starting U-CUP Initialization Script..."
 # Le WORKDIR est /app.
 
 # 1. APPLICATION DES VARIABLES DE SÉCURITÉ ET DE CONNEXION DE RENDER
-# Copier le .env de configuration de Render pour que Artisan puisse voir les valeurs
-cp /app/.env.render /app/.env
+echo "Copying and configuring environment file..."
 
-# Forcer le mode SSL pour PostgreSQL (requis par Render)
-export DB_SSLMODE=require
-echo "DB_SSLMODE=require" >> .env
-echo "APP_URL=$APP_URL" >> .env
+# CRITIQUE: Copie le contenu de .env.render vers .env
+cat /app/.env.render > /app/.env
+# CRITIQUE: Ajoute une ligne vide de sécurité pour éviter la concaténation de la ligne suivante
+echo "" >> /app/.env 
+
+# Forcer le mode SSL pour PostgreSQL (requis par Render) et l'APP_URL
+echo "DB_SSLMODE=require" >> /app/.env
+echo "APP_URL=$APP_URL" >> /app/.env
 
 # Générer la clé d'application si elle est manquante
-if grep -q "^APP_KEY=" .env; then
-    if [ -z "$(grep "^APP_KEY=" .env | cut -d '=' -f 2)" ]; then
+if grep -q "^APP_KEY=" /app/.env; then
+    if [ -z "$(grep "^APP_KEY=" /app/.env | cut -d '=' -f 2)" ]; then
         APP_KEY=$(php artisan key:generate --show)
-        sed -i "s|^APP_KEY=.*|APP_KEY=$APP_KEY|" .env
+        sed -i "s|^APP_KEY=.*|APP_KEY=$APP_KEY|" /app/.env
     fi
 else
     APP_KEY=$(php artisan key:generate --show)
-    echo "APP_KEY=$APP_KEY" >> .env
+    echo "APP_KEY=$APP_KEY" >> /app/.env
 fi
 
 # 2. CACHE ET MIGRATIONS
@@ -34,13 +37,12 @@ php artisan route:cache
 
 # 3. Exécuter la réinitialisation de la base de données et le seeding
 echo "Exécution des migrations et seeding..."
-# La commande 'migrate:fresh' est utilisée car elle a réussi lors du précédent déploiement
 php artisan migrate:fresh --seed --force
 
 # 4. CONFIGURATION NGINX DYNAMIQUE POUR RENDER
-# CRITIQUE: Substituer le port par la variable d'environnement $PORT de Render.
+# Substituer le port par la variable d'environnement $PORT de Render.
 echo "Setting Nginx listener port to $PORT..."
-# Nous supposons que le fichier nginx.conf utilise un port de secours (comme 8080)
+# Utilisation de 'sed' pour remplacer le port 8080 (le port de secours défini) par la variable $PORT
 sed -i "s/listen 0.0.0.0:8080;/listen 0.0.0.0:$PORT;/" /etc/nginx/nginx.conf
 sed -i "s/listen \[::\]:8080;/listen \[::\]:$PORT;/" /etc/nginx/nginx.conf
 
@@ -58,5 +60,4 @@ chown -R www-data:www-data /var/log/supervisor /var/log/nginx /var/log/php-fpm
 
 # 6. DÉMARRAGE DES SERVICES
 echo "Starting Supervisor (Nginx and PHP-FPM)..."
-# Exécuter Supervisor en mode non daemon (-n) pour qu'il reste au premier plan (requis par Docker)
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisor.conf -n

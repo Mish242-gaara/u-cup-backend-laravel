@@ -5,8 +5,7 @@ FROM php:8.3-fpm-alpine
 WORKDIR /app
 
 # 2. INSTALLATION DES DÉPENDANCES SYSTÈME, EXTENSIONS PHP ET NETTOYAGE
-# Les packages sont installés en deux étapes : les dépendances de construction (.build-deps) 
-# et les dépendances runtime (permanentes).
+# Installation des dépendances de construction et de runtime.
 RUN apk add --no-cache --virtual .build-deps \
     autoconf \
     gcc \
@@ -14,9 +13,6 @@ RUN apk add --no-cache --virtual .build-deps \
     make \
     libzip-dev \
     postgresql-dev \
-    # Ajout des dépendances pour gd si nécessaire (libpng-dev, freetype-dev, etc.)
-    # Si vous utilisez GD pour les images, vous devrez ajouter des packages ici.
-    # icu-dev pour intl
     icu-dev \
     && apk add --no-cache \
     git \
@@ -27,16 +23,16 @@ RUN apk add --no-cache --virtual .build-deps \
     nginx \
     supervisor \
     ca-certificates \
-    # Dépendances runtime pour les extensions
     icu-data \
+    # CORRECTION CRITIQUE (v2) : Extensions binaires PHP Alpine qui causent des erreurs de compilation config.m4
+    && apk add --no-cache \
+    php83-bcmath \
+    php83-openssl \
+    \
+    # Installer les extensions qui sont compilées correctement via docker-php-ext-install
     && docker-php-ext-install pdo pdo_pgsql zip \
-    # CORRECTION CRITIQUE : Ajout des extensions Laravel essentielles
     && docker-php-ext-install opcache \
-    && docker-php-ext-install bcmath \
-    && docker-php-ext-install openssl \
     && docker-php-ext-install intl \
-    # Si vous avez besoin de GD:
-    # && docker-php-ext-install gd \
     && docker-php-ext-enable opcache \
     && apk del .build-deps
 
@@ -54,7 +50,6 @@ RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
 RUN chmod -R 775 /app/storage /app/bootstrap/cache
 
 # 6b. CRÉATION DES RÉPERTOIRES DE LOGS AVEC BONNES PERMISSIONS
-# Assurez-vous que /var/run/php existe pour la socket FPM
 RUN mkdir -p /var/log/supervisor /var/log/nginx /var/log/php-fpm /var/log/laravel /var/run/php
 RUN chown -R www-data:www-data /var/log/supervisor /var/log/nginx /var/log/php-fpm /var/log/laravel /var/run/php
 RUN chmod -R 775 /var/log/supervisor /var/log/nginx /var/log/php-fpm /var/log/laravel /var/run/php

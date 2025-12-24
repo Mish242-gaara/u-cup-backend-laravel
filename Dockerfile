@@ -28,7 +28,8 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 COPY . .
 
 # NOUVEAU : Copier le fichier .env.render comme base de configuration
-COPY .env.render .env
+# NOTE : Les variables critiques (DB_*, APP_KEY) seront définies par Render/CMD
+RUN touch .env
 
 # 5. INSTALLATION DES DÉPENDANCES COMPOSER
 RUN composer install --no-dev --prefer-dist --optimize-autoloader
@@ -36,24 +37,24 @@ RUN composer install --no-dev --prefer-dist --optimize-autoloader
 # NOUVELLE ÉTAPE : Assurer les permissions pour les dossiers de cache/logs de Laravel
 RUN chmod -R 775 storage bootstrap/cache
 
-# 6. DÉMARRAGE DU SERVEUR
-# CORRECTION COMPLÈTE : Force DB_SSLMODE=require pour TOUTES les commandes,
-# utilise DATABASE_URL pour la configuration, et génère/sauvegarde APP_KEY
-CMD set -e && \
-    # Configurer l'environnement pour utiliser DATABASE_URL et forcer SSL
-    export DB_SSLMODE=require && \
-    export DB_CONNECTION=pgsql && \
-    # Mapper DATABASE_URL (fournie par Render) vers DB_URL (attendue par Laravel)
-    export DB_URL=${DATABASE_URL:-postgres://localhost/laravel} && \
-    # Générer la clé d'application et la sauvegarder dans .env
+# 6. DÉMARRAGE DU SERVEUR (Correction complète : utilise ENTRYPOINT/CMD)
+# Utiliser /bin/sh pour exécuter la chaîne de commandes séquentielles
+ENTRYPOINT ["/bin/sh", "-c"]
+
+# CMD : La logique complexe est désormais une chaîne unique exécutée par l'ENTRYPOINT
+CMD export DB_SSLMODE=require && \
+    # Générer la clé d'application, stocker la clé et le DB_SSLMODE dans .env (pour le serveur)
     APP_KEY=$(php artisan key:generate --show) && \
     echo "APP_KEY=$APP_KEY" >> .env && \
     echo "DB_SSLMODE=require" >> .env && \
-    # Nettoyer et recacher la configuration avec les bonnes variables
+    
+    # Nettoyer et recacher la configuration avec les variables du shell et du .env
     php artisan config:clear && \
     php artisan config:cache && \
     php artisan view:cache && \
-    # Exécuter les migrations avec SSL forcé
-    php artisan migrate --force && \
+    
+    # Exécuter la réinitialisation de la base de données de démo et le seeding
+    php artisan migrate:fresh --seed --force && \
+    
     # Démarrer le serveur
     php artisan serve --host=0.0.0.0 --port=$PORT

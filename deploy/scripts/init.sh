@@ -30,7 +30,34 @@ chmod -R 775 /var/log/supervisor /var/log/nginx /var/log/php-fpm /var/www/html/s
 # Configuration initiale
 echo "Setting up environment configuration..."
 if [ ! -f .env ]; then
-    cp /etc/supervisor/conf.d/.env.render .env
+    if [ -f /usr/local/bin/.env.render ]; then
+        cp /usr/local/bin/.env.render .env
+    else
+        # Create a minimal .env file
+        cat > .env << 'EOF'
+APP_NAME=Laravel
+APP_ENV=production
+APP_KEY=
+APP_DEBUG=false
+APP_URL=https://u-cup-backend-laravel.onrender.com
+
+LOG_CHANNEL=stack
+LOG_LEVEL=debug
+
+DB_CONNECTION=pgsql
+DB_HOST=dpg-d54ii8umcj7s73es0220-a.oregon-postgres.render.com
+DB_PORT=5432
+DB_DATABASE=ucup_database
+DB_USERNAME=ucup_database_user
+DB_PASSWORD=o2HvDyIDWtgPrijOJ4aehI10mjJaWs9E
+
+BROADCAST_DRIVER=log
+CACHE_DRIVER=file
+QUEUE_CONNECTION=database
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+EOF
+    fi
 fi
 
 # Générer la clé d'application si elle n'existe pas

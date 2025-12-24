@@ -45,10 +45,16 @@ RUN chmod -R 775 /var/log/supervisor /var/log/nginx /var/log/php-fpm /var/log/la
 # 7. CONFIGURATION NGINX
 COPY deploy/config/nginx.conf /etc/nginx/nginx.conf
 
-# 8. CONFIGURATION SUPERVISOR
+# 8. CONFIGURATION PHP-FPM
+COPY deploy/config/php-fpm.conf /etc/php83/php-fpm.d/www.conf
+
+# 9. CONFIGURATION SUPERVISOR
 COPY deploy/config/supervisor.conf /etc/supervisor/conf.d/supervisor.conf
 
-# 9. CRÉATION DU SCRIPT D'INITIALISATION
+# 10. COPIE DU FICHIER D'ENVIRONNEMENT POUR RENDER
+COPY deploy/config/.env.render /usr/local/bin/.env.render
+
+# 11. CRÉATION DU SCRIPT D'INITIALISATION
 COPY deploy/scripts/init.sh /usr/local/bin/init.sh
 RUN chmod +x /usr/local/bin/init.sh
 

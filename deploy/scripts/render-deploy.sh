@@ -34,6 +34,17 @@ chown -R www-data:www-data bootstrap/cache
 chmod -R 775 storage
 chmod -R 775 bootstrap/cache
 
+# Create necessary log directories
+echo "Creating log directories..."
+mkdir -p storage/logs
+chown -R www-data:www-data storage/logs
+chmod -R 775 storage/logs
+
+# Create supervisor log directory
+mkdir -p /var/log/supervisor
+chown -R www-data:www-data /var/log/supervisor
+chmod -R 775 /var/log/supervisor
+
 echo "Optimizing application..."
 php artisan optimize
 

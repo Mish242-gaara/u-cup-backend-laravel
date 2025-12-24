@@ -2,24 +2,30 @@
 
 # Vérifier que les répertoires de logs existent (créés dans Dockerfile)
 # et créer les fichiers de log s'ils n'existent pas
-[ -d /var/log/supervisor ] || mkdir -p /var/log/supervisor
-[ -d /var/log/nginx ] || mkdir -p /var/log/nginx
-[ -d /var/log/php-fpm ] || mkdir -p /var/log/php-fpm
-[ -d /var/log/laravel ] || mkdir -p /var/log/laravel
+echo "Creating log directories..."
+mkdir -p /var/log/supervisor
+mkdir -p /var/log/nginx
+mkdir -p /var/log/php-fpm
+mkdir -p /var/www/html/storage/logs
+
+# Create symlinks for tmp logs to storage logs
+echo "Creating log symlinks..."
+ln -sf /tmp/laravel-worker.log /var/www/html/storage/logs/worker.log
+ln -sf /tmp/laravel-worker-error.log /var/www/html/storage/logs/worker-error.log
+ln -sf /tmp/laravel-schedule.log /var/www/html/storage/logs/schedule.log
+ln -sf /tmp/laravel-schedule-error.log /var/www/html/storage/logs/schedule-error.log
+ln -sf /tmp/supervisord.log /var/log/supervisor/supervisord.log
 
 [ -f /var/log/supervisor/supervisord.log ] || touch /var/log/supervisor/supervisord.log
 [ -f /var/log/nginx.log ] || touch /var/log/nginx.log
 [ -f /var/log/nginx-error.log ] || touch /var/log/nginx-error.log
 [ -f /var/log/php-fpm.log ] || touch /var/log/php-fpm.log
 [ -f /var/log/php-fpm-error.log ] || touch /var/log/php-fpm-error.log
-[ -f /var/log/laravel-worker.log ] || touch /var/log/laravel-worker.log
-[ -f /var/log/laravel-worker-error.log ] || touch /var/log/laravel-worker-error.log
-[ -f /var/log/laravel-schedule.log ] || touch /var/log/laravel-schedule.log
-[ -f /var/log/laravel-schedule-error.log ] || touch /var/log/laravel-schedule-error.log
 
 # S'assurer que les permissions sont correctes
-chown -R www-data:www-data /var/log/supervisor /var/log/nginx /var/log/php-fpm /var/log/laravel
-chmod -R 775 /var/log/supervisor /var/log/nginx /var/log/php-fpm /var/log/laravel
+echo "Setting permissions..."
+chown -R www-data:www-data /var/log/supervisor /var/log/nginx /var/log/php-fpm /var/www/html/storage
+chmod -R 775 /var/log/supervisor /var/log/nginx /var/log/php-fpm /var/www/html/storage
 
 # Configuration initiale
 export DB_SSLMODE=require

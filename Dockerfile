@@ -18,6 +18,8 @@ RUN apk add --no-cache --virtual .build-deps \
     libzip \
     unzip \
     postgresql-client \
+    nginx \
+    supervisor \
     && docker-php-ext-install pdo pdo_pgsql zip \
     && apk del .build-deps
 
@@ -27,34 +29,41 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # 4. COPIE DU CODE SOURCE
 COPY . .
 
-# NOUVEAU : Copier le fichier .env.render comme base de configuration
-# NOTE : Les variables critiques (DB_*, APP_KEY) seront définies par Render/CMD
-RUN touch .env
-
 # 5. INSTALLATION DES DÉPENDANCES COMPOSER
 RUN composer install --no-dev --prefer-dist --optimize-autoloader
 
-# NOUVELLE ÉTAPE : Assurer les permissions pour les dossiers de cache/logs de Laravel
-RUN chmod -R 775 storage bootstrap/cache
+# 6. CONFIGURATION DES PERMISSIONS
+RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
+RUN chmod -R 775 /app/storage /app/bootstrap/cache
 
-# 6. DÉMARRAGE DU SERVEUR (Correction complète : utilise ENTRYPOINT/CMD)
-# Utiliser /bin/sh pour exécuter la chaîne de commandes séquentielles
-ENTRYPOINT ["/bin/sh", "-c"]
+# 7. CONFIGURATION NGINX
+COPY deploy/config/nginx.conf /etc/nginx/nginx.conf
 
-# CMD : La logique complexe est désormais une chaîne unique exécutée par l'ENTRYPOINT
-CMD export DB_SSLMODE=require && \
-    # Générer la clé d'application, stocker la clé et le DB_SSLMODE dans .env (pour le serveur)
-    APP_KEY=$(php artisan key:generate --show) && \
-    echo "APP_KEY=$APP_KEY" >> .env && \
-    echo "DB_SSLMODE=require" >> .env && \
-    
-    # Nettoyer et recacher la configuration avec les variables du shell et du .env
-    php artisan config:clear && \
-    php artisan config:cache && \
-    php artisan view:cache && \
-    
-    # Exécuter la réinitialisation de la base de données de démo et le seeding
-    php artisan migrate:fresh --seed --force && \
-    
-    # Démarrer le serveur
-    php artisan serve --host=0.0.0.0 --port=$PORT
+# 8. CONFIGURATION SUPERVISOR
+COPY deploy/config/supervisor.conf /etc/supervisor/conf.d/supervisor.conf
+
+# 9. CRÉATION DU SCRIPT D'INITIALISATION
+RUN echo '#!/bin/sh
+
+# Configuration initiale
+export DB_SSLMODE=require
+
+# Générer la clé d\'application
+APP_KEY=$(php artisan key:generate --show)
+echo "APP_KEY=$APP_KEY" >> .env
+echo "DB_SSLMODE=require" >> .env
+
+# Nettoyer et recacher la configuration
+php artisan config:clear
+php artisan config:cache
+php artisan view:cache
+
+# Exécuter les migrations et le seeding
+php artisan migrate:fresh --seed --force
+
+# Démarrer Supervisor
+exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisor.conf' > /usr/local/bin/init.sh && \
+    chmod +x /usr/local/bin/init.sh
+
+# 10. DÉMARRAGE AVEC LE SCRIPT D'INITIALISATION
+CMD ["/usr/local/bin/init.sh"]

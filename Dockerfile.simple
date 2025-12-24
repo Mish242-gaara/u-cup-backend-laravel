@@ -1,0 +1,47 @@
+# Dockerfile simplifié pour Laravel sur Render
+FROM php:8.3-fpm-alpine
+
+# Installer les dépendances nécessaires
+RUN apk add --no-cache \
+    nginx \
+    supervisor \
+    postgresql-client \
+    git \
+    unzip
+
+# Installer les extensions PHP
+RUN docker-php-ext-install pdo pdo_pgsql
+
+# Installer Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Copier le code source
+WORKDIR /var/www/html
+COPY . .
+
+# Installer les dépendances PHP
+RUN composer install --no-dev --optimize-autoloader
+
+# Configurer les permissions
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Créer les répertoires de logs
+RUN mkdir -p /var/log/nginx /var/log/php-fpm
+RUN chown -R www-data:www-data /var/log/nginx /var/log/php-fpm
+
+# Configurer Nginx
+COPY deploy/config/nginx.simple.conf /etc/nginx/nginx.conf
+
+# Configurer PHP-FPM
+COPY deploy/config/php-fpm.simple.conf /usr/local/etc/php-fpm.d/www.conf
+
+# Configurer Supervisor
+COPY deploy/config/supervisor.simple.conf /etc/supervisor/conf.d/supervisor.conf
+
+# Créer le script de démarrage simple
+COPY deploy/scripts/start.simple.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/start.sh
+
+# Démarrer avec le script simple
+CMD ["/usr/local/bin/start.sh"]

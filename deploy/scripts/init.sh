@@ -1,5 +1,5 @@
 #!/bin/sh
-set -e # Sortir immédiatement si une commande échoue
+set -e
 
 echo "Starting U-CUP Initialization Script..."
 
@@ -10,22 +10,22 @@ echo "Copying and configuring environment file..."
 
 # CRITIQUE: Copie le contenu de .env.render vers .env
 cat /app/.env.render > /app/.env
-# CRITIQUE: Ajoute une ligne vide de sécurité pour éviter la concaténation de la ligne suivante
+# CRITIQUE: Ajoute une ligne vide de sécurité
 echo "" >> /app/.env 
 
 # Forcer le mode SSL pour PostgreSQL (requis par Render) et l'APP_URL
 echo "DB_SSLMODE=require" >> /app/.env
 echo "APP_URL=$APP_URL" >> /app/.env
 
-# Générer la clé d'application si elle est manquante
+# Générer la clé d'application si elle est manquante (Syntaxe Shell standard)
 if grep -q "^APP_KEY=" /app/.env; then
-    if [ -z "$(grep "^APP_KEY=" /app/.env | cut -d '=' -f 2)" ]; then
-        APP_KEY=$(php artisan key:generate --show)
-        sed -i "s|^APP_KEY=.*|APP_KEY=$APP_KEY|" /app/.env
-    fi
+    if [ -z "$(grep "^APP_KEY=" /app/.env | cut -d '=' -f 2)" ]; then
+        APP_KEY=$(php artisan key:generate --show)
+        sed -i "s|^APP_KEY=.*|APP_KEY=$APP_KEY|" /app/.env
+    fi
 else
-    APP_KEY=$(php artisan key:generate --show)
-    echo "APP_KEY=$APP_KEY" >> /app/.env
+    APP_KEY=$(php artisan key:generate --show)
+    echo "APP_KEY=$APP_KEY" >> /app/.env
 fi
 
 # 2. CACHE ET MIGRATIONS
@@ -40,13 +40,12 @@ echo "Exécution des migrations et seeding..."
 php artisan migrate:fresh --seed --force
 
 # 4. CONFIGURATION NGINX DYNAMIQUE POUR RENDER
-# Substituer le port par la variable d'environnement $PORT de Render.
 echo "Setting Nginx listener port to $PORT..."
-# Utilisation de 'sed' pour remplacer le port 8080 (le port de secours défini) par la variable $PORT
+# Utilisation de 'sed' pour remplacer le port 8080 par la variable $PORT
 sed -i "s/listen 0.0.0.0:8080;/listen 0.0.0.0:$PORT;/" /etc/nginx/nginx.conf
 sed -i "s/listen \[::\]:8080;/listen \[::\]:$PORT;/" /etc/nginx/nginx.conf
 
-# 5. CONFIGURATION DES LOGS ET PERMISSIONS FINALES
+# 5. CONFIGURATION DES LOGS ET PERMISSIONS FINALES (CORRIGÉ POUR PHP-FPM)
 echo "Setting permissions..."
 chown -R www-data:www-data /app/storage /app/bootstrap/cache
 chmod -R 775 /app/storage /app/bootstrap/cache

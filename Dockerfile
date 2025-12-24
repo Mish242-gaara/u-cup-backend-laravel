@@ -37,6 +37,11 @@ RUN composer install --no-dev --prefer-dist --optimize-autoloader
 RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
 RUN chmod -R 775 /app/storage /app/bootstrap/cache
 
+# 6b. CRÉATION DES RÉPERTOIRES DE LOGS AVEC BONNES PERMISSIONS
+RUN mkdir -p /var/log/supervisor /var/log/nginx /var/log/php-fpm /var/log/laravel
+RUN chown -R www-data:www-data /var/log/supervisor /var/log/nginx /var/log/php-fpm /var/log/laravel
+RUN chmod -R 775 /var/log/supervisor /var/log/nginx /var/log/php-fpm /var/log/laravel
+
 # 7. CONFIGURATION NGINX
 COPY deploy/config/nginx.conf /etc/nginx/nginx.conf
 

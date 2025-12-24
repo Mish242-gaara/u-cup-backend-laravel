@@ -22,6 +22,14 @@ export DB_SSLMODE=require
 # Générer la clé d'application
 APP_KEY=$(php artisan key:generate --show)
 echo "APP_KEY=$APP_KEY" >> .env
+
+# Configuration correcte de la base de données
+echo "DB_CONNECTION=pgsql" >> .env
+echo "DB_HOST=dpg-d54ii8umcj7s73es0220-a.oregon-postgres.render.com" >> .env
+echo "DB_PORT=5432" >> .env
+echo "DB_DATABASE=ucup_database" >> .env
+echo "DB_USERNAME=ucup_database_user" >> .env
+echo "DB_PASSWORD=o2HvDyIDWtgPrijOJ4aehI10mjJaWs9E" >> .env
 echo "DB_SSLMODE=require" >> .env
 
 # Nettoyer et recacher la configuration

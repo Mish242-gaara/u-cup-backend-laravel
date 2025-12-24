@@ -397,8 +397,6 @@
                         Classement
                     </a>
 
-                    {{-- Lien d'Administration (bouton vert) --}}
-
                 </nav>
                 
                 {{-- Menu Mobile --}}

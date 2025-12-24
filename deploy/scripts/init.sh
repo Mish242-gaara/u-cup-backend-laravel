@@ -64,7 +64,8 @@ fi
 if grep -q "^APP_KEY=" .env; then
     if [ -z "$(grep "^APP_KEY=" .env | cut -d '=' -f 2)" ]; then
         APP_KEY=$(php artisan key:generate --show)
-        sed -i "s/^APP_KEY=.*/APP_KEY=$APP_KEY/" .env
+        # Utiliser une approche compatible avec Alpine Linux
+        sed -i "s|^APP_KEY=.*|APP_KEY=$APP_KEY|" .env
     fi
 else
     APP_KEY=$(php artisan key:generate --show)
@@ -107,6 +108,10 @@ php artisan config:clear
 php artisan config:cache
 php artisan view:cache
 php artisan route:cache
+
+# Attendre un peu pour laisser le temps à tout de s'initialiser
+echo "Waiting for services to stabilize..."
+sleep 5
 
 # Démarrer Supervisor en tant qu'utilisateur spécifique
 echo "Starting Supervisor..."

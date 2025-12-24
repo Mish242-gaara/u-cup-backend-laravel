@@ -1,70 +1,25 @@
 #!/bin/sh
+set -e # Sortir immédiatement si une commande échoue
 
-# Vérifier que les répertoires de logs existent (créés dans Dockerfile)
-# et créer les fichiers de log s'ils n'existent pas
-echo "Creating log directories..."
-mkdir -p /var/log/supervisor
-mkdir -p /var/log/nginx
-mkdir -p /var/log/php-fpm
-mkdir -p /var/www/html/storage/logs
+# Le WORKDIR est /app dans le Dockerfile.
 
-# Create symlinks for tmp logs to storage logs
-echo "Creating log symlinks..."
-ln -sf /tmp/laravel-worker.log /var/www/html/storage/logs/worker.log
-ln -sf /tmp/laravel-worker-error.log /var/www/html/storage/logs/worker-error.log
-ln -sf /tmp/laravel-schedule.log /var/www/html/storage/logs/schedule.log
-ln -sf /tmp/laravel-schedule-error.log /var/www/html/storage/logs/schedule-error.log
-ln -sf /tmp/supervisord.log /var/log/supervisor/supervisord.log
-
-[ -f /var/log/supervisor/supervisord.log ] || touch /var/log/supervisor/supervisord.log
-[ -f /var/log/nginx.log ] || touch /var/log/nginx.log
-[ -f /var/log/nginx-error.log ] || touch /var/log/nginx-error.log
-[ -f /var/log/php-fpm.log ] || touch /var/log/php-fpm.log
-[ -f /var/log/php-fpm-error.log ] || touch /var/log/php-fpm-error.log
-
-# S'assurer que les permissions sont correctes
-echo "Setting permissions..."
-chown -R www-data:www-data /var/log/supervisor /var/log/nginx /var/log/php-fpm /var/www/html/storage
-chmod -R 775 /var/log/supervisor /var/log/nginx /var/log/php-fpm /var/www/html/storage
-
-# Configuration initiale
+# 1. APPLICATION DES VARIABLES DE SÉCURITÉ ET DE CONNEXION DE RENDER
+# Rendre le .env invisible et forcer le mode SSL
 echo "Setting up environment configuration..."
+export DB_SSLMODE=require
+
+# Créer un fichier .env (si non existant) et y ajouter la clé et le SSL
 if [ ! -f .env ]; then
-    if [ -f /usr/local/bin/.env.render ]; then
-        cp /usr/local/bin/.env.render .env
-    else
-        # Create a minimal .env file
-        cat > .env << 'EOF'
-APP_NAME=Laravel
-APP_ENV=production
-APP_KEY=
-APP_DEBUG=false
-APP_URL=https://u-cup-backend-laravel.onrender.com
-
-LOG_CHANNEL=stack
-LOG_LEVEL=debug
-
-DB_CONNECTION=pgsql
-DB_HOST=dpg-d54ii8umcj7s73es0220-a.oregon-postgres.render.com
-DB_PORT=5432
-DB_DATABASE=ucup_database
-DB_USERNAME=ucup_database_user
-DB_PASSWORD=o2HvDyIDWtgPrijOJ4aehI10mjJaWs9E
-
-BROADCAST_DRIVER=log
-CACHE_DRIVER=file
-QUEUE_CONNECTION=database
-SESSION_DRIVER=file
-SESSION_LIFETIME=120
-EOF
-    fi
+    touch .env
 fi
+echo "DB_SSLMODE=require" >> .env
+echo "APP_URL=$APP_URL" >> .env # Utiliser l'APP_URL de Render
 
-# Générer la clé d'application si elle n'existe pas
+# Générer la clé d'application si elle est manquante (utilise 'sed' pour la compatibilité Alpine)
 if grep -q "^APP_KEY=" .env; then
     if [ -z "$(grep "^APP_KEY=" .env | cut -d '=' -f 2)" ]; then
         APP_KEY=$(php artisan key:generate --show)
-        # Utiliser une approche compatible avec Alpine Linux
+        # sed -i est la meilleure façon de remplacer dans Alpine
         sed -i "s|^APP_KEY=.*|APP_KEY=$APP_KEY|" .env
     fi
 else
@@ -72,36 +27,7 @@ else
     echo "APP_KEY=$APP_KEY" >> .env
 fi
 
-# Nettoyer et recacher la configuration
-php artisan config:clear
-php artisan config:cache
-php artisan view:cache
-
-# Attendre que la base de données soit prête avec une approche plus robuste
-echo "Attente de la disponibilité de la base de données..."
-for i in {1..60}; do
-    if php artisan migrate:status > /dev/null 2>&1; then
-        echo "Base de données prête!"
-        break
-    fi
-    echo "Tentative $i/60..."
-    sleep 5
-done
-
-# Exécuter les migrations et le seeding avec gestion des erreurs
-echo "Exécution des migrations..."
-php artisan migrate:fresh --seed --force || {
-    echo "Échec des migrations, tentative avec disable-foreign-keys..."
-    php artisan migrate:fresh --seed --force --disable-foreign-keys
-}
-
-# Vérifier la configuration avant de démarrer
-echo "Testing database connection..."
-if ! php artisan migrate:status > /dev/null 2>&1; then
-    echo "Database connection failed, trying to wait..."
-    sleep 10
-fi
-
+# 2. CACHE ET MIGRATIONS
 # Nettoyer et recacher la configuration
 echo "Clearing and caching configuration..."
 php artisan config:clear
@@ -109,10 +35,27 @@ php artisan config:cache
 php artisan view:cache
 php artisan route:cache
 
-# Attendre un peu pour laisser le temps à tout de s'initialiser
-echo "Waiting for services to stabilize..."
-sleep 5
+# 3. ATTENDRE ET MIGRER
+# La migration est l'étape où nous vérifions que la BD fonctionne
+echo "Exécution des migrations et seeding..."
+# Utiliser 'php artisan db:wipe' au lieu de migrate:fresh pour une meilleure gestion des erreurs de BD non trouvée
+# Puis exécution normale (si les migrations échouent, le script sort grâce à set -e)
+php artisan migrate:fresh --seed --force
 
-# Démarrer Supervisor en tant qu'utilisateur spécifique
-echo "Starting Supervisor..."
+# 4. CONFIGURATION DES LOGS ET PERMISSIONS
+echo "Setting permissions..."
+# Les chemins sont relatifs à WORKDIR /app, ou les chemins absolus pour les services
+chown -R www-data:www-data /app/storage /app/bootstrap/cache
+chmod -R 775 /app/storage /app/bootstrap/cache
+
+# Créer les logs des services et définir les permissions
+echo "Creating log files and setting permissions..."
+touch /var/log/supervisor/supervisord.log
+touch /var/log/nginx/access.log
+touch /var/log/nginx/error.log
+chown -R www-data:www-data /var/log/supervisor /var/log/nginx /var/log/php-fpm
+
+# 5. DÉMARRAGE DES SERVICES
+echo "Starting Supervisor (Nginx and PHP-FPM)..."
+# Exécuter Supervisor en mode non daemon (-n) pour qu'il reste au premier plan (requis par Docker)
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisor.conf -n

@@ -3,7 +3,14 @@
     "builds": [
         {
             "src": "package.json",
-            "use": "@vercel/next"
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "public"
+            }
+        },
+        {
+            "src": "api/index.php",
+            "use": "@vercel/php"
         }
     ],
     "routes": [
@@ -13,18 +20,22 @@
         },
         {
             "src": "/api/(.*)",
-            "dest": "https://u-cup-backend.onrender.com/api/$1",
+            "dest": "api/index.php",
             "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
         },
         {
             "src": "/storage/(.*)",
-            "dest": "https://u-cup-backend.onrender.com/storage/$1"
+            "dest": "/storage/$1"
         }
     ],
     "rewrites": [
         {
             "source": "/health",
             "destination": "/api/health"
+        },
+        {
+            "source": "/api/(.*)",
+            "destination": "api/index.php"
         }
     ],
     "headers": [

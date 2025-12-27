@@ -11,7 +11,7 @@ use App\Models\Team;
 class Player extends Model
 {
     use HasFactory;
-
+ 
     protected $fillable = [
         'team_id',
         'first_name',
@@ -21,7 +21,21 @@ class Player extends Model
         'birth_date',
         'height',
         'nationality',
-        'photo_path', 
+        'photo_path',
+        'goals',
+        'assists',
+        'yellow_cards',
+        'red_cards',
+        'matches_played',
+        'minutes_played',
+        'passes_completed',
+        'pass_accuracy',
+        'tackles',
+        'interceptions',
+        'fouls_committed',
+        'fouls_suffered',
+        'shots_on_target',
+        'dribbles',
     ];
 
     protected $casts = [
@@ -67,6 +81,11 @@ class Player extends Model
     public function getFullNameAttribute()
     {
         return "{$this->first_name} {$this->last_name}";
+    }
+
+    public function getNameAttribute()
+    {
+        return $this->full_name;
     }
 
     public function getAgeAttribute()

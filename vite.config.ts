@@ -29,6 +29,15 @@ export default defineConfig({
             host: '127.0.0.1',
         },
     },
+    build: {
+        outDir: 'public/build',
+        emptyOutDir: true,
+        rollupOptions: {
+            output: {
+                manualChunks: undefined,
+            },
+        },
+    },
     esbuild: {
         jsx: 'automatic',
     },

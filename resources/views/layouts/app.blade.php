@@ -9,6 +9,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link href="/css/global.css" rel="stylesheet">
     
+    <!-- GSAP Animation Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
     <style>
         body {
             background-color: #111827; /* bg-gray-900 */
@@ -212,6 +215,31 @@
         body.light-mode .mobile-menu-container .border-t {
             border-color: #e5e7eb;
         }
+
+        /* GSAP Animation Classes */
+        main {
+            opacity: 1;
+        }
+
+        .page-exit {
+            animation: pageExit 0.5s ease-out forwards;
+        }
+
+        @keyframes pageExit {
+            to {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+        }
+
+        /* Hover effect pour les cartes */
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+        }
     </style>
     
     <script>
@@ -329,7 +357,7 @@
 
                 {{-- Logo U-CUP Tournoi --}}
                 <div class="flex-shrink-0 flex items-center">
-                    <a href="{{ route('home') }}" class="flex items-center space-x-2 font-extrabold text-2xl text-yellow-500">
+                    <a href="{{ route('home') }}" class="flex items-center space-x-2 font-extrabold text-2xl text-yellow-500 logo-link">
                         <i class="fas fa-trophy text-green-500"></i>
                         <span>U-CUP</span>
                     </a>
@@ -352,8 +380,8 @@
                     
                     {{-- Fonction pour marquer l'onglet actif (basé sur la route) --}}
                     @php
-                        $navLinkClasses = 'text-gray-300 hover:text-white px-3 py-2 text-sm font-medium transition duration-150 ease-in-out';
-                        $activeLinkClasses = 'text-white border-b-2 border-green-500 font-bold px-3 py-2 text-sm';
+                        $navLinkClasses = 'text-gray-300 hover:text-white px-3 py-2 text-sm font-medium transition duration-150 ease-in-out nav-link';
+                        $activeLinkClasses = 'text-white border-b-2 border-green-500 font-bold px-3 py-2 text-sm nav-link';
                     @endphp
                     
                     <a href="{{ route('home') }}" 
@@ -367,7 +395,7 @@
                     </a>
                     
                     <a href="{{ route('matches.live') }}" 
-                        class="text-red-500 font-bold hover:text-red-400 px-3 py-2 text-sm flex items-center">
+                        class="text-red-500 font-bold hover:text-red-400 px-3 py-2 text-sm flex items-center nav-link">
                         <i class="fas fa-circle text-xs animate-pulse mr-1"></i> En Direct
                     </a>
 
@@ -403,45 +431,44 @@
                 <div class="mobile-menu-container" id="mobile-menu">
                     <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-800 border-t border-gray-700">
                         <a href="{{ route('home') }}" 
-                            class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('home') ? 'text-white bg-gray-700' : 'text-gray-300 hover:text-white hover:bg-gray-700' }}">
+                            class="block px-3 py-2 rounded-md text-base font-medium mobile-nav-link {{ request()->routeIs('home') ? 'text-white bg-gray-700' : 'text-gray-300 hover:text-white hover:bg-gray-700' }}">
                             Accueil
                         </a>
                         
                         <a href="{{ route('matches.index') }}" 
-                            class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('matches.index') ? 'text-white bg-gray-700' : 'text-gray-300 hover:text-white hover:bg-gray-700' }}">
+                            class="block px-3 py-2 rounded-md text-base font-medium mobile-nav-link {{ request()->routeIs('matches.index') ? 'text-white bg-gray-700' : 'text-gray-300 hover:text-white hover:bg-gray-700' }}">
                             Matchs
                         </a>
                         
                         <a href="{{ route('matches.live') }}" 
-                            class="block px-3 py-2 rounded-md text-base font-medium text-red-500 font-bold hover:text-red-400">
+                            class="block px-3 py-2 rounded-md text-base font-medium text-red-500 font-bold hover:text-red-400 mobile-nav-link">
                             <i class="fas fa-circle text-xs animate-pulse mr-1"></i> En Direct
                         </a>
                         
                         <a href="{{ route('teams.index') }}" 
-                            class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('teams.index') ? 'text-white bg-gray-700' : 'text-gray-300 hover:text-white hover:bg-gray-700' }}">
+                            class="block px-3 py-2 rounded-md text-base font-medium mobile-nav-link {{ request()->routeIs('teams.index') ? 'text-white bg-gray-700' : 'text-gray-300 hover:text-white hover:bg-gray-700' }}">
                             Équipes
                         </a>
                         
                         <a href="{{ route('players.index') }}" 
-                            class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('players.index') ? 'text-white bg-gray-700' : 'text-gray-300 hover:text-white hover:bg-gray-700' }}">
+                            class="block px-3 py-2 rounded-md text-base font-medium mobile-nav-link {{ request()->routeIs('players.index') ? 'text-white bg-gray-700' : 'text-gray-300 hover:text-white hover:bg-gray-700' }}">
                             Joueurs
                         </a>
                         
                         <a href="{{ route('players.leaderboard') }}" 
-                            class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('players.leaderboard') ? 'text-white bg-gray-700' : 'text-gray-300 hover:text-white hover:bg-gray-700' }}">
+                            class="block px-3 py-2 rounded-md text-base font-medium mobile-nav-link {{ request()->routeIs('players.leaderboard') ? 'text-white bg-gray-700' : 'text-gray-300 hover:text-white hover:bg-gray-700' }}">
                             Top Buteurs/Passeurs
                         </a>
                         
                         <a href="{{ route('gallery.index') }}" 
-                            class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('gallery.index') ? 'text-white bg-gray-700' : 'text-gray-300 hover:text-white hover:bg-gray-700' }}">
+                            class="block px-3 py-2 rounded-md text-base font-medium mobile-nav-link {{ request()->routeIs('gallery.index') ? 'text-white bg-gray-700' : 'text-gray-300 hover:text-white hover:bg-gray-700' }}">
                             Galerie
                         </a>
                         
                         <a href="{{ route('standings.index') }}" 
-                            class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('standings.index') ? 'text-white bg-gray-700' : 'text-gray-300 hover:text-white hover:bg-gray-700' }}">
+                            class="block px-3 py-2 rounded-md text-base font-medium mobile-nav-link {{ request()->routeIs('standings.index') ? 'text-white bg-gray-700' : 'text-gray-300 hover:text-white hover:bg-gray-700' }}">
                             Classement
                         </a>
-                        
 
                     </div>
                 </div>
@@ -453,17 +480,17 @@
         @yield('content')
     </main>
 
-        {{-- 
-        ***************************************************
-        NOUVEAU FOOTER DÉTAILLÉ ET PROFESSIONNEL
-        *************************************************** --}}
+    {{-- 
+    ***************************************************
+    FOOTER DÉTAILLÉ ET PROFESSIONNEL
+    *************************************************** --}}
     <footer class="bg-gray-800/90 border-t border-gray-700 mt-12">
         <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
             {{-- Grille principale du footer (4 colonnes sur grand écran, 2 colonnes sur mobile) --}}
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-sm footer-grid">
                 
                 {{-- 1. Identité & Organisation --}}
-                <div class="col-span-2 md:col-span-1">
+                <div class="col-span-2 md:col-span-1 footer-section">
                     <h4 class="text-lg font-extrabold text-green-400 mb-3 flex items-center">
                         <i class="fas fa-trophy mr-2"></i> U-Cup Tournoi 2026
                     </h4>
@@ -473,9 +500,9 @@
                 </div>
 
                 {{-- 2. Navigation Rapide --}}
-                <div>
+                <div class="footer-section">
                     <h4 class="text-lg font-bold text-white mb-3">Navigation Rapide</h4>
-                    <ul class="space-y-2">
+                    <ul class="space-y-2 footer-links">
                         <li><a href="{{ route('home') }}" class="text-gray-400 hover:text-white transition duration-150">Accueil</a></li>
                         <li><a href="{{ route('matches.index') }}" class="text-gray-400 hover:text-white transition duration-150">Matchs & Résultats</a></li>
                         <li><a href="{{ route('matches.live') }}" class="text-red-400 hover:text-red-300 font-bold transition duration-150">En Direct <i class="fas fa-satellite-dish ml-1 text-sm"></i></a></li>
@@ -484,9 +511,9 @@
                 </div>
 
                 {{-- 3. Statistiques & Média --}}
-                <div>
+                <div class="footer-section">
                     <h4 class="text-lg font-bold text-white mb-3">Statistiques & Équipes</h4>
-                    <ul class="space-y-2">
+                    <ul class="space-y-2 footer-links">
                         <li><a href="{{ route('teams.index') }}" class="text-gray-400 hover:text-white transition duration-150">Équipes participantes</a></li>
                         <li><a href="{{ route('players.index') }}" class="text-gray-400 hover:text-white transition duration-150">Liste des Joueurs</a></li>
                         <li><a href="{{ route('players.leaderboard') }}" class="text-gray-400 hover:text-white transition duration-150">Top Buteurs/Passeurs</a></li>
@@ -495,14 +522,14 @@
                 </div>
 
                 {{-- 4. Crédit & Contact --}}
-                <div>
+                <div class="footer-section">
                     <h4 class="text-lg font-bold text-white mb-3">Développement & Contact</h4>
                     <div class="space-y-2">
                         <p class="text-gray-300 font-medium">Conçu par : Elmish MOUKOUANGA</p>
                         <p class="text-xs text-gray-500">Étudiant en Génie Informatique – ESTAM</p>
                     </div>
                     
-                    <div class="mt-4 space-y-2">
+                    <div class="mt-4 space-y-2 footer-links">
                         <a href="tel:+242064149149" class="text-gray-400 hover:text-white flex items-center">
                             <i class="fas fa-phone-alt text-green-400 mr-2"></i> +242 06 414 91 49
                         </a>
@@ -514,7 +541,7 @@
             </div>
             
             {{-- Barre de copyright du bas --}}
-            <div class="border-t border-gray-700 mt-8 pt-4 text-center">
+            <div class="border-t border-gray-700 mt-8 pt-4 text-center footer-copyright">
                 <p class="text-sm text-gray-500">
                     &copy; {{ date('Y') }} U-Cup / BDDE – Tous droits réservés.
                     <a href="{{ route('login') }}" class="ml-4 text-xs text-gray-600 hover:text-gray-400">Accès Admin</a>
@@ -523,11 +550,134 @@
         </div>
     </footer>
     {{-- 
-        ***************************************************
-        FIN DU NOUVEAU FOOTER
-        *************************************************** --}}
+    ***************************************************
+    FIN DU FOOTER
+    *************************************************** --}}
 
     <script>
+        // GSAP Page Animation Functions
+        function animatePageLoad() {
+            // Animer le header
+            gsap.fromTo('header', 
+                { opacity: 0, y: -30 },
+                { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }
+            );
+
+            // Animer le logo
+            gsap.fromTo('.logo-link',
+                { opacity: 0, scale: 0.8 },
+                { opacity: 1, scale: 1, duration: 0.5, ease: 'back.out', delay: 0.1 }
+            );
+
+            // Animer les liens de navigation
+            gsap.fromTo('.nav-link, .mobile-nav-link',
+                { opacity: 0, x: 20 },
+                { opacity: 1, x: 0, duration: 0.5, stagger: 0.08, ease: 'power2.out', delay: 0.2 }
+            );
+
+            // Animer le contenu principal avec délai
+            gsap.fromTo('main',
+                { opacity: 0, y: 30 },
+                { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out', delay: 0.3 }
+            );
+
+            // Animer les sections du footer
+            gsap.fromTo('.footer-section',
+                { opacity: 0, y: 20 },
+                { opacity: 1, y: 0, duration: 0.6, stagger: 0.1, ease: 'power2.out', delay: 0.4 }
+            );
+
+            // Animer les liens du footer
+            gsap.fromTo('.footer-links a',
+                { opacity: 0, x: -10 },
+                { opacity: 1, x: 0, duration: 0.4, stagger: 0.05, ease: 'power2.out', delay: 0.5 }
+            );
+
+            // Animer le copyright
+            gsap.fromTo('.footer-copyright',
+                { opacity: 0 },
+                { opacity: 1, duration: 0.5, ease: 'power2.out', delay: 0.6 }
+            );
+        }
+
+        // Animation de transition entre pages
+        function animatePageExit(url) {
+            gsap.to('main', {
+                duration: 0.4,
+                opacity: 0,
+                y: -20,
+                ease: 'power2.in',
+                onComplete: () => {
+                    window.location.href = url;
+                }
+            });
+        }
+
+        // Écouter les clics sur les liens internes
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('a');
+            if (link && link.hostname === window.location.hostname && !link.target) {
+                const url = link.getAttribute('href');
+                if (url && !url.startsWith('#')) {
+                    e.preventDefault();
+                    animatePageExit(url);
+                }
+            }
+        });
+
+        // Animation des cartes au survol
+        function setupCardHoverAnimations() {
+            const cards = document.querySelectorAll('.bg-gray-800, .bg-gray-900, .rounded-lg');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    gsap.to(this, {
+                        duration: 0.3,
+                        y: -5,
+                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)',
+                        ease: 'power2.out'
+                    });
+                });
+
+                card.addEventListener('mouseleave', function() {
+                    gsap.to(this, {
+                        duration: 0.3,
+                        y: 0,
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                        ease: 'power2.out'
+                    });
+                });
+            });
+        }
+
+        // Animation des boutons
+        function setupButtonAnimations() {
+            const buttons = document.querySelectorAll('button, a.bg-red-600, a.bg-blue-600, a.bg-green-600');
+            buttons.forEach(btn => {
+                btn.addEventListener('mouseenter', function() {
+                    gsap.to(this, {
+                        duration: 0.2,
+                        scale: 1.05,
+                        ease: 'power2.out'
+                    });
+                });
+
+                btn.addEventListener('mouseleave', function() {
+                    gsap.to(this, {
+                        duration: 0.2,
+                        scale: 1,
+                        ease: 'power2.out'
+                    });
+                });
+            });
+        }
+
+        // Initialiser les animations au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            animatePageLoad();
+            setupCardHoverAnimations();
+            setupButtonAnimations();
+        });
+
         function toggleMobileMenu() {
             document.getElementById('mobileMenu').classList.toggle('hidden');
         }

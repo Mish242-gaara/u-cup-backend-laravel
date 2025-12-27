@@ -1,11 +1,15 @@
 {
   "version": 2,
-  "builds": [],
-  "routes": [
+  "builds": [
     {
-      "src": "/api/(.*)",
-      "dest": "api/index.php"
-    },
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "public/build"
+      }
+    }
+  ],
+  "routes": [
     {
       "src": "/storage/(.*)",
       "dest": "/storage/$1"

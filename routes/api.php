@@ -26,3 +26,4 @@ Route::get('/matches/{match}/stream', [SseMatchController::class, 'stream'])
 
 
 Route::get('/matches/{match}/timer', [MatchTimerController::class, 'getTimer']);
+Route::post('/settings/password', [PasswordController::class, 'update']);

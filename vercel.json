@@ -1,43 +1,18 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/index.php",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "public"
-      }
-    }
-  ],
+  "builds": [],
   "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "api/index.php"
+    },
     {
       "src": "/storage/(.*)",
       "dest": "/storage/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "api/index.php"
+      "dest": "/api/index.php"
     }
-  ],
-  "rewrites": [],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Frame-Options",
-          "value": "SAMEORIGIN"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        }
-      ]
-    }
-  ],
-  "cleanUrls": true
+  ]
 }

@@ -1,15 +1,5 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
-import { execSync } from 'child_process';
-
-const canRunPhp = () => {
-    try {
-        execSync('php -v', { stdio: 'pipe' });
-        return true;
-    } catch {
-        return false;
-    }
-};
 
 export default defineConfig({
     plugins: [
@@ -19,7 +9,7 @@ export default defineConfig({
                 'resources/js/app.js',
             ],
             refresh: true,
-            wayfinder: canRunPhp() ? {} : false,
+            wayfinder: process.env.CI ? false : {},
         }),
     ],
 });

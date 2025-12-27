@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 
+const isCI = process.env.CI === 'true' || process.env.VERCEL === '1';
+
 export default defineConfig({
     plugins: [
         laravel({
@@ -9,9 +11,7 @@ export default defineConfig({
                 'resources/js/app.js',
             ],
             refresh: true,
-            wayfinder: {
-                ignore_errors: true,
-            },
+            wayfinder: isCI ? false : {},
         }),
     ],
 });

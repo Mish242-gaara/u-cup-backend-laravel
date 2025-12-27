@@ -3,9 +3,9 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vite build",
+        "build": "php artisan wayfinder:generate --with-form && vite build",
         "build:ssr": "vite build && vite build --ssr",
-        "build:vercel": "vite build --base=/ && php artisan config:clear && php artisan view:clear",
+        "build:vercel": "php artisan wayfinder:generate --with-form && vite build --base=/ && php artisan config:clear && php artisan view:clear",
         "dev": "vite",
         "format": "prettier --write resources/",
         "format:check": "prettier --check resources/",

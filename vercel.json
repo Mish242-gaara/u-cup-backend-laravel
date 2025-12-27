@@ -3,19 +3,41 @@
   "builds": [
     {
       "src": "api/index.php",
-      "use": "@vercel/php"
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "public"
+      }
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/storage/(.*)",
-      "destination": "/storage/$1"
+      "src": "/storage/(.*)",
+      "dest": "/storage/$1"
     },
     {
-      "source": "/(.*)",
-      "destination": "api/index.php"
+      "src": "/(.*)",
+      "dest": "api/index.php"
     }
   ],
-  "cleanUrls": true,
-  "trailingSlash": false
+  "rewrites": [],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+  ],
+  "cleanUrls": true
 }

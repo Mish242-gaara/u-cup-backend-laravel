@@ -1,62 +1,21 @@
 {
-    "version": 2,
-    "builds": [
-        {
-            "src": "package.json",
-            "use": "@vercel/static-build",
-            "config": {
-                "distDir": "public"
-            }
-        },
-        {
-            "src": "api/index.php",
-            "use": "@vercel/php"
-        }
-    ],
-    "routes": [
-        {
-            "src": "/(.*)",
-            "dest": "/"
-        },
-        {
-            "src": "/api/(.*)",
-            "dest": "api/index.php",
-            "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
-        },
-        {
-            "src": "/storage/(.*)",
-            "dest": "/storage/$1"
-        }
-    ],
-    "rewrites": [
-        {
-            "source": "/health",
-            "destination": "/api/health"
-        },
-        {
-            "source": "/api/(.*)",
-            "destination": "api/index.php"
-        }
-    ],
-    "headers": [
-        {
-            "source": "/(.*)",
-            "headers": [
-                {
-                    "key": "X-Frame-Options",
-                    "value": "SAMEORIGIN"
-                },
-                {
-                    "key": "X-Content-Type-Options",
-                    "value": "nosniff"
-                },
-                {
-                    "key": "X-XSS-Protection",
-                    "value": "1; mode=block"
-                }
-            ]
-        }
-    ],
-    "cleanUrls": true,
-    "trailingSlash": false
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.php",
+      "use": "@vercel/php"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/storage/(.*)",
+      "destination": "/storage/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "api/index.php"
+    }
+  ],
+  "cleanUrls": true,
+  "trailingSlash": false
 }

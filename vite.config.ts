@@ -9,7 +9,9 @@ export default defineConfig({
                 'resources/js/app.js',
             ],
             refresh: true,
-            wayfinder: process.env.CI ? false : {},
+            wayfinder: {
+                ignore_errors: true,
+            },
         }),
     ],
 });
